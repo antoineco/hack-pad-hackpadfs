@@ -87,11 +87,10 @@ func TestFileRead(tb testing.TB, o FSOptions) {
 	})
 }
 
-//nolint:govet
 func TestFileReadAt(tb testing.TB, o FSOptions) {
 	const fileContents = "hello world"
 	setupFS, commit := o.Setup.FS(tb)
-	assert.NoError(tb, hackpadfs.WriteFullFile(setupFS, "foo", []byte(fileContents), 0666))
+	assert.NoError(tb, hackpadfs.WriteFullFile(setupFS, "foo", []byte(fileContents), 0o666))
 	fs := commit()
 
 	for _, tc := range []struct {
@@ -245,7 +244,7 @@ func TestFileSeek(tb testing.TB, o FSOptions) {
 
 	o.tbRun(tb, "seek current", func(tb testing.TB) {
 		setupFS, commit := o.Setup.FS(tb)
-		assert.NoError(tb, hackpadfs.WriteFullFile(setupFS, "foo", []byte(fileContents), 0666))
+		assert.NoError(tb, hackpadfs.WriteFullFile(setupFS, "foo", []byte(fileContents), 0o666))
 
 		fs := commit()
 		file, err := fs.Open("foo")
@@ -326,7 +325,7 @@ func testFileWrite(tb testing.TB, o FSOptions, writer func(hackpadfs.File, []byt
 	o.tbRun(tb, "write-truncate-write-read", func(tb testing.TB) {
 		const fileContents = "hello world"
 		setupFS, commit := o.Setup.FS(tb)
-		assert.NoError(tb, hackpadfs.WriteFullFile(setupFS, "foo", []byte(fileContents), 0666))
+		assert.NoError(tb, hackpadfs.WriteFullFile(setupFS, "foo", []byte(fileContents), 0o666))
 
 		fs := commit()
 		file, err := hackpadfs.OpenFile(fs, "foo", hackpadfs.FlagReadWrite|hackpadfs.FlagTruncate, 0)
@@ -469,7 +468,7 @@ func TestFileReadDir(tb testing.TB, o FSOptions) {
 		if assert.NoError(tb, err) {
 			assert.NoError(tb, file.Close())
 		}
-		assert.NoError(tb, setupFS.Mkdir("bar", 0700))
+		assert.NoError(tb, setupFS.Mkdir("bar", 0o700))
 
 		fs := commit()
 		file, err = fs.Open(".")
@@ -482,8 +481,8 @@ func TestFileReadDir(tb testing.TB, o FSOptions) {
 			return entries[a].Name() < entries[b].Name()
 		})
 		o.assertSubsetQuickInfos(tb, []quickInfo{
-			{Name: "bar", Mode: hackpadfs.ModeDir | 0700, IsDir: true},
-			{Name: "foo", Mode: 0666},
+			{Name: "bar", Mode: hackpadfs.ModeDir | 0o700, IsDir: true},
+			{Name: "foo", Mode: 0o666},
 		}, asQuickDirInfos(tb, entries))
 	})
 
@@ -493,7 +492,7 @@ func TestFileReadDir(tb testing.TB, o FSOptions) {
 		if assert.NoError(tb, err) {
 			assert.NoError(tb, file.Close())
 		}
-		assert.NoError(tb, setupFS.Mkdir("bar", 0700))
+		assert.NoError(tb, setupFS.Mkdir("bar", 0o700))
 
 		fs := commit()
 		file, err = fs.Open(".")
@@ -519,14 +518,14 @@ func TestFileReadDir(tb testing.TB, o FSOptions) {
 		assert.Equal(tb, 2, len(entries))
 		o.assertSubsetQuickInfos(tb, asQuickDirInfos(tb, entries), asQuickDirInfos(tb, entriesAll))
 		o.assertSubsetQuickInfos(tb, []quickInfo{
-			{Name: "bar", Mode: hackpadfs.ModeDir | 0700, IsDir: true},
-			{Name: "foo", Mode: 0666},
+			{Name: "bar", Mode: hackpadfs.ModeDir | 0o700, IsDir: true},
+			{Name: "foo", Mode: 0o666},
 		}, asQuickDirInfos(tb, entriesAll))
 	})
 
 	o.tbRun(tb, "readdir high N", func(tb testing.TB) {
 		setupFS, commit := o.Setup.FS(tb)
-		assert.NoError(tb, setupFS.Mkdir("bar", 0700))
+		assert.NoError(tb, setupFS.Mkdir("bar", 0o700))
 
 		fs := commit()
 		file, err := fs.Open(".")
@@ -536,14 +535,14 @@ func TestFileReadDir(tb testing.TB, o FSOptions) {
 		assert.NoError(tb, err)
 		assert.NoError(tb, file.Close())
 		o.assertSubsetQuickInfos(tb,
-			[]quickInfo{{Name: "bar", Mode: hackpadfs.ModeDir | 0700, IsDir: true}},
+			[]quickInfo{{Name: "bar", Mode: hackpadfs.ModeDir | 0o700, IsDir: true}},
 			asQuickDirInfos(tb, entries),
 		)
 	})
 
 	o.tbRun(tb, "list empty subdirectory", func(tb testing.TB) {
 		setupFS, commit := o.Setup.FS(tb)
-		assert.NoError(tb, setupFS.Mkdir("foo", 0700))
+		assert.NoError(tb, setupFS.Mkdir("foo", 0o700))
 
 		fs := commit()
 		file, err := fs.Open("foo")
@@ -557,7 +556,7 @@ func TestFileReadDir(tb testing.TB, o FSOptions) {
 
 	o.tbRun(tb, "list subdirectory", func(tb testing.TB) {
 		setupFS, commit := o.Setup.FS(tb)
-		assert.NoError(tb, setupFS.Mkdir("foo", 0700))
+		assert.NoError(tb, setupFS.Mkdir("foo", 0o700))
 		file, err := hackpadfs.Create(setupFS, "foo/bar")
 		if assert.NoError(tb, err) {
 			assert.NoError(tb, file.Close())
@@ -566,7 +565,7 @@ func TestFileReadDir(tb testing.TB, o FSOptions) {
 		if assert.NoError(tb, err) {
 			assert.NoError(tb, file.Close())
 		}
-		assert.NoError(tb, setupFS.Mkdir("foo/boo", 0700))
+		assert.NoError(tb, setupFS.Mkdir("foo/boo", 0o700))
 
 		fs := commit()
 		file, err = fs.Open("foo")
@@ -579,9 +578,9 @@ func TestFileReadDir(tb testing.TB, o FSOptions) {
 			return entries[a].Name() < entries[b].Name()
 		})
 		o.assertEqualQuickInfos(tb, []quickInfo{
-			{Name: "bar", Mode: 0666},
-			{Name: "baz", Mode: 0666},
-			{Name: "boo", Mode: hackpadfs.ModeDir | 0700, IsDir: true},
+			{Name: "bar", Mode: 0o666},
+			{Name: "baz", Mode: 0o666},
+			{Name: "boo", Mode: hackpadfs.ModeDir | 0o700, IsDir: true},
 		}, asQuickDirInfos(tb, entries))
 	})
 
@@ -654,7 +653,6 @@ func TestFileSync(tb testing.TB, o FSOptions) {
 	assert.NoError(tb, file.Close())
 }
 
-//nolint:govet
 func TestFileTruncate(tb testing.TB, o FSOptions) {
 	const fileContents = "hello world"
 	for _, tc := range []struct {
@@ -704,12 +702,12 @@ func TestFileTruncate(tb testing.TB, o FSOptions) {
 					Err:  tc.expectErrKind,
 				}, err)
 				o.tryAssertEqualFS(tb, map[string]fsEntry{
-					"foo": {Mode: 0666, Size: int64(len(fileContents))},
+					"foo": {Mode: 0o666, Size: int64(len(fileContents))},
 				}, fs)
 			} else {
 				assert.NoError(tb, err)
 				o.tryAssertEqualFS(tb, map[string]fsEntry{
-					"foo": {Mode: 0666, Size: tc.size},
+					"foo": {Mode: 0o666, Size: tc.size},
 				}, fs)
 			}
 		})

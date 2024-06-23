@@ -88,7 +88,6 @@ func copyTarWalk(src hackpadfs.FS, archive *tar.Writer) hackpadfs.WalkDirFunc {
 }
 
 // TestNewTarFromFS is a sanity check on the constructor we use in fstest. Just make sure it behaves normally for simple cases.
-// nolint:govet
 func TestNewTarFromFS(t *testing.T) {
 	t.Parallel()
 	for _, tc := range []struct {
@@ -111,7 +110,7 @@ func TestNewTarFromFS(t *testing.T) {
 		{
 			description: "one dir",
 			do: func(t *testing.T, fs hackpadfs.FS) {
-				err := hackpadfs.Mkdir(fs, "foo", 0700)
+				err := hackpadfs.Mkdir(fs, "foo", 0o700)
 				if !assert.NoError(t, err) {
 					t.FailNow()
 				}
@@ -120,7 +119,7 @@ func TestNewTarFromFS(t *testing.T) {
 		{
 			description: "dir with one nested file",
 			do: func(t *testing.T, fs hackpadfs.FS) {
-				err := hackpadfs.Mkdir(fs, "foo", 0700)
+				err := hackpadfs.Mkdir(fs, "foo", 0o700)
 				if !assert.NoError(t, err) {
 					t.FailNow()
 				}
